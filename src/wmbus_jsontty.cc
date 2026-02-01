@@ -20,6 +20,8 @@
 #include"wmbus_utils.h"
 #include"serial.h"
 
+
+#include <algorithm>
 #include<assert.h>
 #include<pthread.h>
 #include<semaphore.h>
