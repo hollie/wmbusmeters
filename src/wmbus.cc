@@ -5599,6 +5599,24 @@ Detected detectBusDeviceOnTTY(string tty,
         }
     }
 
+    // For devices that cannot be auto-detected but are explicitly specified,
+    // just assume they exist on the tty.
+    if (probe_for.count(BusDeviceType::DEVICE_RAWTTY))
+    {
+        detected.setAsFound("", BusDeviceType::DEVICE_RAWTTY, detected.specified_device.bps.empty() ? 0 : atoi(detected.specified_device.bps.c_str()), false, desired_linkmodes);
+        return detected;
+    }
+    if (probe_for.count(BusDeviceType::DEVICE_HEXTTY))
+    {
+        detected.setAsFound("", BusDeviceType::DEVICE_HEXTTY, detected.specified_device.bps.empty() ? 0 : atoi(detected.specified_device.bps.c_str()), false, desired_linkmodes);
+        return detected;
+    }
+    if (probe_for.count(BusDeviceType::DEVICE_JSONTTY))
+    {
+        detected.setAsFound("", BusDeviceType::DEVICE_JSONTTY, detected.specified_device.bps.empty() ? 115200 : atoi(detected.specified_device.bps.c_str()), false, desired_linkmodes);
+        return detected;
+    }
+
     // We could not auto-detect either. default is DEVICE_UNKNOWN.
     return detected;
 }
@@ -5670,13 +5688,14 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
         specified_device.type != BusDeviceType::DEVICE_AUTO &&
         !specified_device.is_tty)
     {
-        debug("(lookup) driver: %s\n", toString(specified_device.type));
+        debug("(lookup) driver: %s (not a tty, treating as file)\n", toString(specified_device.type));
         assert(!lms.empty());
         detected.setAsFound("", specified_device.type, 0, specified_device.is_file || specified_device.is_stdin, lms);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
+    debug("(lookup) driver: %s (is a tty)\n", toString(specified_device.type));
     LinkModeSet desired_linkmodes = lms;
     if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN)
     {
